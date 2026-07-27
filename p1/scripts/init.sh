@@ -6,8 +6,13 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-
 install_vagrant(){
+
+    #skip installation if vagrant ok
+    if vagrant --version; then
+        return 0
+    fi
+
     wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
     apt update && apt install -y vagrant
@@ -16,11 +21,34 @@ install_vagrant(){
     if vagrant --version; then
         echo "Vagrant installed successfully!"
     else
-        echo "Error when installing vagrant!"
+        echo "Error no vagrant installed!"
         exit 1
     fi
 }
 
+#install vm provider libvirt
+install_libvirt(){
+    #skip installation if libvirt ok
+    if virsh list --all; then
+        return 0
+    fi
+
+    apt update && apt install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst
+    systemctl enable --now libvirtd
+    usermod -aG libvirt $USER && newgrp libvirt
+
+    #check if it is installed successfully
+    if virsh list --all; then
+        echo "libvirt installed successfully!"
+    else
+        echo "Error no libvirt installed"
+        exit 1
+    fi
+
+    vagrant plugin install vagrant-libvirt
+}
+
 echo "installing vagrant..."
 install_vagrant
-
+echo "installing libvirt for vm provisionning..."
+install_libvirt
