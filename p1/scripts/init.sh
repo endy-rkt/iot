@@ -18,7 +18,7 @@ install_vagrant(){
     apt update && apt install -y vagrant
 
     #check if vagrant is installed successfully
-    if vagrant --version; then
+    if vagrant --version > /dev/null; then
         echo "Vagrant installed successfully!"
     else
         echo "Error no vagrant installed!"
@@ -29,16 +29,16 @@ install_vagrant(){
 #install vm provider libvirt
 install_libvirt(){
     #skip installation if libvirt ok
-    if virsh list --all; then
+    if virsh list --all > /dev/null; then
         return 0
     fi
 
-    apt update && apt install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst
+    apt update && apt install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst virt-manager libvirt-dev ruby-dev
     systemctl enable --now libvirtd
-    usermod -aG libvirt $USER && newgrp libvirt
+    usermod -aG libvirt $USER && usermod -aG libvirt $SUDO_USER
 
     #check if it is installed successfully
-    if virsh list --all; then
+    if virsh list --all > /dev/null; then
         echo "libvirt installed successfully!"
     else
         echo "Error no libvirt installed"
@@ -46,9 +46,23 @@ install_libvirt(){
     fi
 
     vagrant plugin install vagrant-libvirt
+    echo "vagrant libvirt plugin installed"
+}
+
+init_vagrant_file(){
+    export VAGRANT_VAGRANTFILE=$(dirname ${BASH_SOURCE[0]})/..
+    
+    if [ -f $VAGRANT_VAGRANTFILE/Vagrantfile ]; then
+        echo "Vagrantfile already exist!"
+        return 0
+    fi
+    
+    cd $VAGRANT_VAGRANTFILE && vagrant init
 }
 
 echo "installing vagrant..."
 install_vagrant
+
 echo "installing libvirt for vm provisionning..."
 install_libvirt
+init_vagrant_file
