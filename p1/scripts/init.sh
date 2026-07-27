@@ -26,32 +26,25 @@ install_vagrant(){
     fi
 }
 
-#install vm provider libvirt
-install_libvirt(){
-    #skip installation if libvirt ok
-    if virsh list --all > /dev/null; then
+#install vm provider virtualbox
+install_vbox(){
+    if vboxmanage --version; then
         return 0
     fi
 
-    apt update && apt install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst virt-manager libvirt-dev ruby-dev
-    systemctl enable --now libvirtd
-    usermod -aG libvirt $USER && usermod -aG libvirt $SUDO_USER
+    wget https://download.virtualbox.org/virtualbox/7.2.14/virtualbox-7.2_7.2.14-174565~Debian~trixie_amd64.deb && dpkg -i virtualbox-7.2_7.2.14-174565~Debian~trixie_amd64.deb && rm virtualbox-7.2_7.2.14-174565~Debian~trixie_amd64.deb
 
-    #check if it is installed successfully
-    if virsh list --all > /dev/null; then
-        echo "libvirt installed successfully!"
+    if vboxmanage --version > /dev/null; then
+        echo "virtualbox installed successfully"
     else
-        echo "Error no libvirt installed"
+        echo "Error when installing vbox"
         exit 1
     fi
-
-    vagrant plugin install vagrant-libvirt
-    echo "vagrant libvirt plugin installed"
 }
 
 init_vagrant_file(){
     export VAGRANT_VAGRANTFILE=$(dirname ${BASH_SOURCE[0]})/..
-    
+
     if [ -f $VAGRANT_VAGRANTFILE/Vagrantfile ]; then
         echo "Vagrantfile already exist!"
         return 0
@@ -64,5 +57,5 @@ echo "installing vagrant..."
 install_vagrant
 
 echo "installing libvirt for vm provisionning..."
-install_libvirt
+install_vbox
 init_vagrant_file
