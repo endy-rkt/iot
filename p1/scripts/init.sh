@@ -37,6 +37,7 @@ install_vbox(){
     if vboxmanage --version > /dev/null; then
         echo "virtualbox installed successfully"
     else
+        #note that there are many step to do to make it work
         echo "Error when installing vbox"
         exit 1
     fi
@@ -53,9 +54,13 @@ init_vagrant_file(){
     cd $VAGRANT_VAGRANTFILE && vagrant init
 }
 
+echo "Unload kvm"
+rmmod kvm_intel kvm
+
 echo "installing vagrant..."
 install_vagrant
 
 echo "installing libvirt for vm provisionning..."
 install_vbox
+
 init_vagrant_file
