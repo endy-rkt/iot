@@ -60,7 +60,7 @@ rmmod kvm_intel kvm
 echo "installing vagrant..."
 install_vagrant
 
-echo "installing libvirt for vm provisionning..."
+echo "installing vbox for vm provisionning..."
 install_vbox
 
 init_vagrant_file
