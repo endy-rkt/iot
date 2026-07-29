@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 #this script is to run with root privilege
 if [[ $EUID -ne 0 ]]; then

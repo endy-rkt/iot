@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 
 #install dep
 apk update && apk upgrade
