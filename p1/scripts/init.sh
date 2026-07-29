@@ -24,6 +24,9 @@ install_vagrant(){
         echo "Error no vagrant installed!"
         exit 1
     fi
+
+    #install vagrant reload plugin
+    vagrant plugin install vagrant-reload
 }
 
 #install vm provider virtualbox
@@ -53,6 +56,9 @@ init_vagrant_file(){
     
     cd $VAGRANT_VAGRANTFILE && vagrant init
 }
+
+echo "Remove vagrant residu"
+rm -rf .vagrant
 
 echo "Unload kvm"
 rmmod kvm_intel kvm

@@ -1,24 +1,52 @@
 Vagrant.configure("2") do |config|
-  #box os
+  # box os
   config.vm.box = "generic/alpine318"
   config.vm.box_version = "4.3.12"
   
-  #provider hardware
+  # provider hardware
   config.vm.provider "virtualbox" do |vb|
     vb.memory = 1024
     vb.cpus = 1
   end
 
-  #server machine
+  # server machine
   config.vm.define "trazanadS" do |trazanadS|
-    trazanadS.vm.hostname = "trazanadS" #to check if we reaally need that it will trazanadS
+    trazanadS.vm.hostname = "trazanadS"
     trazanadS.vm.network "private_network", ip: "192.168.56.110"
+      
+    trazanadS.vm.provision "install-dependancy", type: "shell", inline: <<-SHELL
+      echo "installing package dependancy"
+
+      apk update && apk upgrade
+      apk add --no-cache curl linux-lts
+
+      # set cgroup version to v2
+      echo 'rc_cgroup_mode="unified"' >> /etc/rc.conf
+
+      # re-enable the cgroups service at boot
+      rc-update add cgroups boot
+      rc-service cgroups stop 2>/dev/null
+    SHELL
+
+    # Reload VM (requires: vagrant plugin install vagrant-reload)
+    trazanadS.vm.provision :reload
+
+    trazanadS.vm.provision "setup-k3s", type: "shell", inline: <<-SHELL
+      # load overlay module into kernel
+      modprobe overlay
+
+      # install latest stable k3s
+      curl -sfL https://get.k3s.io | sh -
+
+      #wait for k3s to be ready
+      until k3s kubectl get nodes 2>/dev/null | grep -q "Ready"; do
+        echo "waiting k3s to be ready..."
+        sleep 2
+      done
+
+      # check the current node
+      export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+      k3s kubectl get nodes
+    SHELL
   end
-
-  #worker machine
-  # config.vm.define "trazanadSW" do |trazanadSW|
-  #   trazanadSW.vm.hostname = "trazanadSW"
-  #   trazanadSW.vm.network "private_network", ip: "192.168.56.111"
-  # end
-
 end
