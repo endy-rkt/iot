@@ -3,13 +3,18 @@ all:
 
 up: all
 
-clean: 
-	vagrant destroy -f
-
 list:
 	vboxmanage list vms
 
 validate: 
 	vagrant validate
 
-.phony: all up clean validate list
+status:
+	vagrant status
+
+clean: 
+	vagrant destroy -f
+
+fclean: clean
+
+.phony: all up list validate status clean fclean
