@@ -1,0 +1,48 @@
+Vagrant.configure("2") do |config|
+  # box os
+  config.vm.box = "generic/alpine318"
+  config.vm.box_version = "4.3.12"
+
+  #sync shared folder
+  config.vm.synced_folder "./conf", "/vagrant"
+
+  # server machine
+  config.vm.define "trazanadS" do |trazanadS|
+    trazanadS.vm.hostname = "trazanadS"
+    trazanadS.vm.network "private_network", ip: "192.168.56.110"
+    
+    # provider hardware
+    trazanadS.vm.provider "virtualbox" do |vb|
+      vb.memory = 2048
+      vb.cpus = 2
+    end
+
+    trazanadS.vm.provision "install-dependancy", type: "shell", path: "./scripts/install-dep.sh" 
+  
+    # Reload VM
+    trazanadS.vm.provision :reload
+
+    trazanadS.vm.provision "setup-k3s", type: "shell", path: "./scripts/setup-k3s-server.sh"
+  end
+
+
+  #worker machine
+  config.vm.define "trazanadSW" do |trazanadSW|
+    trazanadSW.vm.hostname = "trazanadSW"
+    trazanadSW.vm.network "private_network", ip: "192.168.56.111"
+    
+    # provider hardware
+    trazanadSW.vm.provider "virtualbox" do |vb|
+      vb.memory = 1024
+      vb.cpus = 1
+    end
+
+    trazanadSW.vm.provision "install-dependancy", type: "shell", path: "./scripts/install-dep.sh" 
+  
+    # Reload VM
+    trazanadSW.vm.provision :reload
+
+    trazanadSW.vm.provision "setup-k3s", type: "shell", path: "./scripts/setup-k3s-worker.sh"
+  end
+
+end
