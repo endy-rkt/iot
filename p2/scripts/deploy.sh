@@ -40,6 +40,27 @@ deploy_app2(){
     #remember to remove lesy ty test ty
 }
 
+deploy_app3(){
+    local APP3_CONF="$CONF_PATH/app3"
+    local APP3_INDEX="$APP3_CONF/conf/site/index.html"
+    local APP3_DEPLOYMENT="$APP3_CONF/manifest/deployment.yaml"
+    local APP3_SERVICE="$APP3_CONF/manifest/service.yaml"
+    local APP3_SERVICE_TEST="$APP3_CONF/manifest/service-test.yaml"
+
+    if [ ! -f "$APP3_DEPLOYMENT" ];then
+        echo "Error app3 deployment manifest not found"
+        return 1
+    fi
+
+    echo "Deploy app3"
+    kubectl create configmap app3-index --from-file="$APP3_INDEX"
+
+    kubectl apply -f "$APP3_DEPLOYMENT","$APP3_SERVICE","$APP3_SERVICE_TEST"
+    #remember to remove lesy ty test ty
+}
+
 deploy_app1
 
 deploy_app2
+
+deploy_app3
