@@ -2,8 +2,6 @@
 
 CONF_PATH="/vagrant"
 
-#/usr/share/nginx/html/index.html
-
 deploy_app1(){
     local APP1_CONF="$CONF_PATH/app1"
     local APP1_INDEX="$APP1_CONF/conf/site/index.html"
@@ -23,4 +21,25 @@ deploy_app1(){
     #remember to remove lesy ty test ty
 }
 
+deploy_app2(){
+    local APP2_CONF="$CONF_PATH/app2"
+    local APP2_INDEX="$APP2_CONF/conf/site/index.html"
+    local APP2_DEPLOYMENT="$APP2_CONF/manifest/deployment.yaml"
+    local APP2_SERVICE="$APP2_CONF/manifest/service.yaml"
+    local APP2_SERVICE_TEST="$APP2_CONF/manifest/service-test.yaml"
+
+    if [ ! -f "$APP2_DEPLOYMENT" ];then
+        echo "Error app2 deployment manifest not found"
+        return 1
+    fi
+
+    echo "Deploy app2"
+    kubectl create configmap app2-index --from-file="$APP2_INDEX"
+
+    kubectl apply -f "$APP2_DEPLOYMENT","$APP2_SERVICE","$APP2_SERVICE_TEST"
+    #remember to remove lesy ty test ty
+}
+
 deploy_app1
+
+deploy_app2
