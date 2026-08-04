@@ -2,7 +2,7 @@
 echo "installing package dependancy"
 
 apk update && apk upgrade
-apk add --no-cache curl linux-lts
+apk add --no-cache curl linux-lts iptables ip6tables
 
 # set cgroup version to v2
 echo 'rc_cgroup_mode="unified"' >> /etc/rc.conf
