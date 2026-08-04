@@ -19,3 +19,11 @@ spec:
         image: nginx:1.30-alpine
         ports:
         - containerPort: 80
+        volumeMounts:
+        - name: app1-site-file
+          mountPath: /usr/share/nginx/html
+          readOnly: true 
+      volumes:
+      - name: app1-site-file
+        configMap:
+          name: app1-index
