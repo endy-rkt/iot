@@ -1,6 +1,7 @@
 #!/bin/sh
 
 CONF_PATH="/vagrant"
+INGRESS_MANIFEST="$CONF_PATH/manifest/ingress.yaml"
 
 deploy_app1(){
     local APP1_CONF="$CONF_PATH/app1"
@@ -64,3 +65,6 @@ deploy_app1
 deploy_app2
 
 deploy_app3
+
+#set up ingress
+kubectl apply -f "$INGRESS_MANIFEST"

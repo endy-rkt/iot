@@ -57,6 +57,12 @@ init_vagrant_file(){
     cd $VAGRANT_VAGRANTFILE && vagrant init
 }
 
+setup_dns_p2(){
+    local P2_IP="192.168.56.110"
+    echo "$P2_IP    app1.com" >> /etc/hosts
+    echo "$P2_IP    app2.com" >> /etc/hosts
+}
+
 echo "Remove vagrant residu"
 rm -rf .vagrant
 
@@ -70,3 +76,6 @@ echo "installing vbox for vm provisionning..."
 install_vbox
 
 init_vagrant_file
+
+#setup p2 local dns
+setup_dns_p2
