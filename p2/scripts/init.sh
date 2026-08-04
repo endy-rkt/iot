@@ -59,6 +59,12 @@ init_vagrant_file(){
 
 setup_dns_p2(){
     local P2_IP="192.168.56.110"
+    
+    if grep $P2_IP /etc/hosts > /dev/null; then
+        return 1
+    fi
+
+    echo "Setting up dns..."
     echo "$P2_IP    app1.com" >> /etc/hosts
     echo "$P2_IP    app2.com" >> /etc/hosts
 }
