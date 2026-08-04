@@ -67,4 +67,10 @@ deploy_app2
 deploy_app3
 
 #set up ingress
+if [ ! -f "$INGRESS_MANIFEST" ];then
+    echo "Error ingress manifest not found"
+    return 1
+fi
+
+echo "Setting up ingress..."
 kubectl apply -f "$INGRESS_MANIFEST"
