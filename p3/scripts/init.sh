@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 install_docker(){
     if docker ps >> /dev/null 2> /dev/null; then
         echo "docker is already running..."
@@ -46,4 +48,4 @@ install_k3d(){
 
 install_docker
 install_k3d
-chmod +x scripts/setup-cluster.sh && ./scripts/setup-cluster.sh
+chmod +x $SCRIPT_DIR/setup-cluster.sh && $SCRIPT_DIR/setup-cluster.sh
