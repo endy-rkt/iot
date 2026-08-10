@@ -12,7 +12,8 @@ install_vagrant(){
     if vagrant --version; then
         return 0
     fi
-
+    
+    #script from vagrant
     wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
     apt update && apt install -y vagrant
@@ -27,15 +28,24 @@ install_vagrant(){
 
     #install vagrant reload plugin
     vagrant plugin install vagrant-reload
+
+    if [ -n "$SUDO_USER" ]; then
+        echo "Install vagrant reload for simple user..."
+        sudo -u "$SUDO_USER" vagrant plugin install vagrant-reload
+    fi
 }
 
 #install vm provider virtualbox
 install_vbox(){
+    local vbox="virtualbox-7.2_7.2.14-174565~Debian~trixie_amd64.deb"
+
     if vboxmanage --version; then
         return 0
     fi
 
-    wget https://download.virtualbox.org/virtualbox/7.2.14/virtualbox-7.2_7.2.14-174565~Debian~trixie_amd64.deb && dpkg -i virtualbox-7.2_7.2.14-174565~Debian~trixie_amd64.deb && rm virtualbox-7.2_7.2.14-174565~Debian~trixie_amd64.deb
+    #install package dependancy
+    apt install -y linux-headers-$(uname -r) libqt6core6t64 libqt6dbus6 libqt6gui6 libqt6help6 libqt6printsupport6 libqt6statemachine6 libqt6widgets6 libqt6xml6
+    wget https://download.virtualbox.org/virtualbox/7.2.14/$vbox && dpkg -i $vbox && rm $vbox
 
     if vboxmanage --version > /dev/null; then
         echo "virtualbox installed successfully"
@@ -69,11 +79,18 @@ setup_dns_p2(){
     echo "$P2_IP    app2.com" >> /etc/hosts
 }
 
+black_list_kvm(){
+    if ! grep "blacklist kvm" /etc/modprobe.d/blacklist.conf; then
+        echo "Unload kvm temporally" && rmmod kvm_intel kvm
+        echo "blacklist kvm_intel" | tee -a /etc/modprobe.d/blacklist.conf
+        echo "blacklist kvm" | tee -a /etc/modprobe.d/blacklist.conf
+    fi
+}
+
+black_list_kvm
+
 echo "Remove vagrant residu"
 rm -rf .vagrant
-
-echo "Unload kvm"
-rmmod kvm_intel kvm
 
 echo "installing vagrant..."
 install_vagrant
