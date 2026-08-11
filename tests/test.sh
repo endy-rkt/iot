@@ -8,9 +8,26 @@ fi
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+structure_test(){
+    echo "Checking hidden or sentive file..."
+
+    DIR="$TEST_DIR/.."
+    FILE=(".gitkeep" ".vagrant" "token" ".token" ".env")
+    
+    for file in "${FILE[@]}"; do
+        result=$(find "$DIR" -name "$file")
+
+        if [ -n "$result" ]; then
+            echo "❌ found : $result"
+        fi
+    done
+}
+
 test(){
     echo "Testing iot..."
     
+    structure_test
+
     for i in $(seq 1 3); do
         echo "Testing p$i..."
 
