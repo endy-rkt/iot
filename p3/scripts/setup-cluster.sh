@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "setting up the cluster..."
 
 setup_argocd(){
+    local ARGOCD_PORT=8080
     local app_manifest="$SCRIPT_DIR/../conf/application.yaml"
 
     #create app namespace
@@ -36,8 +37,15 @@ setup_argocd(){
     
     #forword argocd and app port
     if [ -n "$SUDO_USER" ]; then
-        echo "forwarding argocd default ports to 8080..."
-        sudo -u $SUDO_USER kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+        if lsof -i :$ARGOCD_PORT > /dev/null; then
+            echo "cleaning argocd port $ARGOCD_PORT..."
+            PID=$(lsof -i :$ARGOCD_PORT | grep LISTEN | head -n 1| awk '{print $2}')
+            kill -9 $PID
+            sleep 3
+        fi
+
+        echo "forwarding argocd default ports to $ARGOCD_PORT..."
+        sudo -u $SUDO_USER kubectl port-forward svc/argocd-server -n argocd $ARGOCD_PORT:443 &
     fi
 }
 
