@@ -16,5 +16,6 @@ clean:
 	vagrant destroy -f
 
 fclean: clean
+	vagrant global-status --prune
 
 .phony: all up list validate status clean fclean
