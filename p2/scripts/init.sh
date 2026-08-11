@@ -9,11 +9,13 @@ fi
 install_vagrant(){
 
     #skip installation if vagrant ok
-    if vagrant --version; then
+    if vagrant --version 2>/dev/null; then
+        echo "vagrant is already installed"
         return 0
     fi
     
     #script from vagrant
+    echo "installing vagrant..."
     wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
     apt update && apt install -y vagrant
@@ -39,7 +41,8 @@ install_vagrant(){
 install_vbox(){
     local vbox="virtualbox-7.2_7.2.14-174565~Debian~trixie_amd64.deb"
 
-    if vboxmanage --version; then
+    if vboxmanage --version 2>/dev/nulll; then
+        echo "vbox is already installed"
         return 0
     fi
 
@@ -57,8 +60,8 @@ install_vbox(){
 }
 
 init_vagrant_file(){
-    export VAGRANT_VAGRANTFILE=$(dirname ${BASH_SOURCE[0]})/..
-
+    local VAGRANT_VAGRANTFILE=$(dirname ${BASH_SOURCE[0]})/..
+    
     if [ -f $VAGRANT_VAGRANTFILE/Vagrantfile ]; then
         echo "Vagrantfile already exist!"
         return 0
