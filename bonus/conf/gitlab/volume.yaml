@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gitlab-pv-data
+  labels:
+    name: pv-data
+spec:
+  capacity:
+    storage: 7Gi
+  volumeMode: Filesystems
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /home/trazanad/data/data
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gitlab-pv-logs
+  labels:
+    name: pv-logs
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystems
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /home/trazanad/data/logs
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gitlab-pv-config
+  labels:
+    name: pv-config
+spec:
+  capacity:
+    storage: 700Mi
+  volumeMode: Filesystems
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /home/trazanad/data/config
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-data
+spec:
+  selector:
+    matchLabels:
+      name: pv-data
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 7Gi
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-logs
+spec:
+  selector:
+    matchLabels:
+      name: pv-logs
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-config
+spec:
+  selector:
+    matchLabels:
+      name: pv-config
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 700Mi
+  storageClassName: manual

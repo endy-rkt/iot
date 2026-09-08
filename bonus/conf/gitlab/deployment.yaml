@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab-deployment
+  labels:
+    app: gitlab-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitlab-app
+  template:
+    metadata:
+      labels:
+        app: gitlab-app
+    spec:
+      containers:
+      - name: gitlab-pod
+        image: gitlab/gitlab-ce:latest
+        ports:
+        - containerPort: 9090 #http
+        - containerPort: 22 #ssh
+        env:
+        - name: GITLAB_OMNIBUS_CONFIG
+          value: |
+            external_url 'https://localhost:9090'
+            puma['worker_processes'] = 1
+            sidekiq['max_concurrency'] = 5
+        volumeMounts:
+        - name: data-volume
+          mountPath: /var/opt/gitlab
+        - name: logs-volume
+          mountPath: /var/log/gitlab
+        - name: config-volume
+          mountPath: /etc/gitlab
+        resources:
+          memory: "4Gi"
+          cpu: "2"
+        limits:
+          memory: "5Gi"
+          cpu: "4"
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: pvc-data
+      - name: logs-volume
+        persistentVolumeClaim:
+          claimName: pvc-logs
+      - name: config-volume
+        persistentVolumeClaim:
+          claimName: pvc-config
