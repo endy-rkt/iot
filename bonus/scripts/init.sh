@@ -11,3 +11,5 @@ DATA_DIR="/home/$SUDO_USER/data"
 mkdir -p $DATA_DIR/{gitlab_config,gitlab_logs,gitlab_data}
 chown $SUDO_USER:$SUDO_USER -R $DATA_DIR
 
+#create namespace
+kubectl create namespace gitlab
