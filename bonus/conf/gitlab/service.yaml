@@ -9,7 +9,7 @@ spec:
     matchLabels:
       app: app1-deployment
   ports:
-  - port: 9090 #http
+  - port: 9090 #https
     targetPort: 9090
     NodePort: 42000
   - port:  22 #ssh

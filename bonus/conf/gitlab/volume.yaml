@@ -7,14 +7,14 @@ metadata:
     name: pv-data
 spec:
   capacity:
-    storage: 7Gi
+    storage: 15Gi
   volumeMode: Filesystems
   accessModes:
   - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
-    path: /home/trazanad/data/data
+    path: /media/sf_iot_volumes/data
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -25,14 +25,14 @@ metadata:
     name: pv-logs
 spec:
   capacity:
-    storage: 1Gi
+    storage: 5Gi
   volumeMode: Filesystems
   accessModes:
   - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
-    path: /home/trazanad/data/logs
+    path: /media/sf_iot_volumes/logs
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -43,14 +43,14 @@ metadata:
     name: pv-config
 spec:
   capacity:
-    storage: 700Mi
+    storage: 1Gi
   volumeMode: Filesystems
   accessModes:
   - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
-    path: /home/trazanad/data/config
+    path: /media/sf_iot_volumes/config
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -65,7 +65,7 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 7Gi
+      storage: 15Gi
   storageClassName: manual
 ---
 apiVersion: v1
@@ -81,7 +81,7 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 5Gi
   storageClassName: manual
 ---
 apiVersion: v1
@@ -97,5 +97,5 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 700Mi
+      storage: 1Gi
   storageClassName: manual

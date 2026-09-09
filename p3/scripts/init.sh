@@ -34,8 +34,6 @@ install_docker(){
 }
 
 install_k3d(){
-    local cluster_name="p3-cluster"
-
     #install k3d
     if ! k3d version >> /dev/null 2>/dev/null; then
         echo "installing k3d..."
@@ -48,14 +46,21 @@ install_k3d(){
             chown -R $SUDO_USER:$SUDO_USER /home/$SUDO_USER/.kube
         fi
     fi
+}
 
-    #create cluster if not exist
-    if ! k3d cluster list | grep -i "$cluster_name" >/dev/null; then
-        echo "creating cluster $cluster_name..."
-        k3d cluster create "$cluster_name" -p "30042:30042@server:0"
+manage_cluster(){    
+    if k3d cluster list | grep -i bonus-cluster &> /dev/null; then
+        echo "deleting bonus-cluster..."
+        k3d cluster delete bonus-cluster
     fi
 
-    #install kubectl
+    if ! k3d cluster list | grep -i "p3-cluster" >/dev/null; then
+        echo "creating cluster p3-cluster..."
+        k3d cluster create "p3-cluster" -p "30042:30042@server:0"
+    fi
+}
+
+install_kubectl(){
     if ! kubectl version >/dev/null 2>/dev/null; then
         echo "installing kubectl..."
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -65,4 +70,6 @@ install_k3d(){
 
 install_docker
 install_k3d
+install_kubectl
+manage_cluster
 chmod +x $SCRIPT_DIR/setup-cluster.sh && $SCRIPT_DIR/setup-cluster.sh
