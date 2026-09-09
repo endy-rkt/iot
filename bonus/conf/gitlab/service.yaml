@@ -1,17 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: gitlab-Service
+  name: gitlab-service
   namespace: gitlab
 spec:
   type: NodePort
   selector:
-    matchLabels:
-      app: app1-deployment
+    app: gitlab-app
   ports:
-  - port: 9090 #https
+  - name: https
+    port: 9090 #https
     targetPort: 9090
-    NodePort: 42000
-  - port:  22 #ssh
+    nodePort: 32000
+  - name: ssh
+    port:  22 #ssh
     targetPort: 22
-    NodePort: 42001
+    nodePort: 32001

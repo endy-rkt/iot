@@ -19,14 +19,45 @@ spec:
       - name: gitlab-pod
         image: gitlab/gitlab-ce:latest
         ports:
-        - containerPort: 9090 #http
+        - containerPort: 9090 #https
         - containerPort: 22 #ssh
         env:
         - name: GITLAB_OMNIBUS_CONFIG
           value: |
-            external_url 'https://localhost:9090'
+            external_url 'http://localhost:9090'
+
+            # --- Puma ---
             puma['worker_processes'] = 1
-            sidekiq['max_concurrency'] = 5
+            puma['min_threads'] = 1
+            puma['max_threads'] = 2
+            puma['per_worker_max_memory_mb'] = 650
+
+            # --- Sidekiq ---
+            sidekiq['max_concurrency'] = 3
+            sidekiq['max_rss_mb_allowance'] = 1024
+            sidekiq['memory_killer_max_rss'] = 700_000
+
+            # --- Redis : illimité par défaut ---
+            redis['maxmemory'] = "256mb"
+            redis['maxmemory_policy'] = "allkeys-lru"
+
+            # --- Gitaly : pics lors d'opérations git (clone/fetch pour ArgoCD) ---
+            gitaly['env'] = {
+              'GITALY_COMMAND_SPAWN_MAX_PARALLEL' => '2'
+            }
+
+            # --- Nginx : évite auto-scaling des workers sur le nb de CPU ---
+            nginx['worker_processes'] = 1
+
+            # --- Composants désactivés ---
+            prometheus_monitoring['enable'] = false
+            registry['enable'] = false
+            gitlab_pages['enable'] = false
+            mattermost['enable'] = false
+            gitlab_kas['enable'] = false
+
+            # --- Mémoire native ---
+            gitlab_rails['env'] = { 'MALLOC_CONF' => 'dirty_decay_ms:1000,muzzy_decay_ms:1000' }
         volumeMounts:
         - name: data-volume
           mountPath: /var/opt/gitlab
@@ -35,11 +66,12 @@ spec:
         - name: config-volume
           mountPath: /etc/gitlab
         resources:
-          memory: "4Gi"
-          cpu: "2"
-        limits:
-          memory: "5Gi"
-          cpu: "4"
+          requests:
+            memory: "6Gi"
+            cpu: "2"
+          limits:
+            memory: "6Gi"
+            cpu: "4"
       volumes:
       - name: data-volume
         persistentVolumeClaim:

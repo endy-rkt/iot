@@ -9,7 +9,7 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 install_docker(){
-    if docker ps >> /dev/null 2> /dev/null; then
+    if docker ps &> /dev/null; then
         echo "docker is already running..."
         return 0
     fi
@@ -35,7 +35,7 @@ install_docker(){
 
 install_k3d(){
     #install k3d
-    if ! k3d version >> /dev/null 2>/dev/null; then
+    if ! k3d version &>/dev/null; then
         echo "installing k3d..."
         wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
@@ -61,7 +61,7 @@ manage_cluster(){
 }
 
 install_kubectl(){
-    if ! kubectl version >/dev/null 2>/dev/null; then
+    if ! kubectl version &>/dev/null; then
         echo "installing kubectl..."
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
         chmod +x kubectl && mv kubectl /usr/bin

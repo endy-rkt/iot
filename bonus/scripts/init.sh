@@ -21,14 +21,14 @@ manage_cluster(){
         k3d cluster delete p3-cluster
     fi
 
-    if !k3d cluster list | grep -i bonus-cluster &> /dev/null; then
+    if ! k3d cluster list | grep -i bonus-cluster &> /dev/null; then
         echo "creating bonus-cluster..."
-        k3d cluster create bonus-cluster -p "42000:42000@loadbalancer" -p "42001:42001@loadbalancer"
+        k3d cluster create bonus-cluster -p "32000:32000@loadbalancer" -p "32001:32001@loadbalancer"
     fi
 }
 
 install_docker(){
-    if docker ps >> /dev/null 2> /dev/null; then
+    if docker ps &> /dev/null; then
         echo "docker is already running..."
         return 0
     fi
@@ -54,7 +54,7 @@ install_docker(){
 
 install_k3d(){
     #install k3d
-    if ! k3d version >> /dev/null 2>/dev/null; then
+    if ! k3d version &>/dev/null; then
         echo "installing k3d..."
         wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
@@ -63,12 +63,13 @@ install_k3d(){
             echo "enabling k3d for simple user..."
             k3d kubeconfig merge --all --output /home/$SUDO_USER/.kube/config
             chown -R $SUDO_USER:$SUDO_USER /home/$SUDO_USER/.kube
+            chown -R $SUDO_USER:$SUDO_USER /home/$SUDO_USER/.kube/config
         fi
     fi
 }
 
 install_kubectl(){
-    if ! kubectl version >/dev/null 2>/dev/null; then
+    if ! kubectl &>/dev/null; then
         echo "installing kubectl..."
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
         chmod +x kubectl && mv kubectl /usr/bin

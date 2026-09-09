@@ -5,7 +5,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "setting up the cluster..."
 
 setup_gitlab(){
+    local APP_MANIFEST="$SCRIPT_DIR/../conf/gitlab/"
+    local APP_VOLUME="$APP_MANIFEST/volume.yaml"
+    local APP_SERVICE="$APP_MANIFEST/service.yaml"
+    local APP_DEPLOYMENT="$APP_MANIFEST/deployment.yaml"
+
     echo "setting up gitlab..."
+    if ! kubectl get ns | grep -i "gitlab" >/dev/null; then
+        kubectl create namespace gitlab
+    fi
+
+    kubectl apply -f "$APP_VOLUME","$APP_DEPLOYMENT","$APP_SERVICE"
 }
 
 setup_argocd(){
@@ -55,4 +65,4 @@ setup_argocd(){
 }
 
 setup_gitlab
-setup_argocd
+# setup_argocd
