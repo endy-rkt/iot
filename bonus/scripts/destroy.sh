@@ -13,8 +13,14 @@ destroy_object(){
     local APP_SERVICE="$APP_MANIFEST/service.yaml"
     local APP_DEPLOYMENT="$APP_MANIFEST/deployment.yaml"
 
+    echo "destroying resources..."
+    kubectl delete all --all -n dev
+    kubectl delete apps --all -n argocd
+    
     echo "destroying the cluster..."
     kubectl apply -f "$APP_DEPLOYMENT","$APP_SERVICE"
+    kubectl delete all --all -n gitlab
+    kubectl delete ns dev argocd gitlab
     k3d cluster delete bonus-cluster
 }
 

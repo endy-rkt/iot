@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: p3-deployment
+  name: bonus-deployment
   namespace: dev
   labels:
-    app: p3-app
+    app: bonus-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: p3-app
+      app: bonus-app
   template:
     metadata:
       labels:
-        app: p3-app
+        app: bonus-app
     spec:
       containers:
       - name: app-container

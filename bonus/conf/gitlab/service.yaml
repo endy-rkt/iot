@@ -9,7 +9,7 @@ spec:
     app: gitlab-app
   ports:
   - name: https
-    port: 9090 #https
+    port: 9090 #http
     targetPort: 9090
     nodePort: 32000
   - name: ssh

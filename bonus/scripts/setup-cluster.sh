@@ -18,12 +18,22 @@ setup_gitlab(){
     kubectl apply -f "$APP_VOLUME","$APP_DEPLOYMENT","$APP_SERVICE"
 }
 
+wait_gitlab(){
+    local HOST_IP=$(ip -f inet addr show dev enp0s3 | awk '/inet / {print $2}' | cut -d/ -f1)
+    local GITLAB_SERVER="http://$HOST_IP:32000"
+
+    until curl $GITLAB_SERVER; do
+        echo "waiting gitlab to be up..."
+        sleep 42 
+    done
+}
+
 setup_argocd(){
     local ARGOCD_PORT=8080
-    local app_manifest="$SCRIPT_DIR/../conf/argocd/application.yaml"
+    local app_manifest="$SCRIPT_DIR/../conf/app/application.yaml"
+    local secret_manifest="$SCRIPT_DIR/../conf/argocd/secret.yaml"
 
     echo "setting up argocd..."
-    #create app namespace
     if ! kubectl get ns | grep -i "dev" >/dev/null; then
         kubectl create namespace dev
     fi
@@ -48,7 +58,7 @@ setup_argocd(){
     echo "password: $PASSWD"
     
     #linking argocd to the repo
-    kubectl apply -f $app_manifest
+    kubectl apply -f "$secret_manifest","$app_manifest"
     
     #forword argocd and app port
     if [ -n "$SUDO_USER" ]; then
@@ -65,4 +75,5 @@ setup_argocd(){
 }
 
 setup_gitlab
-# setup_argocd
+wait_gitlab
+setup_argocd
