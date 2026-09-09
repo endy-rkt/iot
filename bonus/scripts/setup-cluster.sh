@@ -22,10 +22,13 @@ wait_gitlab(){
     local HOST_IP=$(ip -f inet addr show dev enp0s3 | awk '/inet / {print $2}' | cut -d/ -f1)
     local GITLAB_SERVER="http://$HOST_IP:32000"
 
-    until curl $GITLAB_SERVER; do
+    until curl $GITLAB_SERVER &> /dev/null; do
         echo "waiting gitlab to be up..."
         sleep 42 
     done
+
+    kubectl get pods -n gitlab
+    kubectl top pods -n gitlab
 }
 
 setup_argocd(){

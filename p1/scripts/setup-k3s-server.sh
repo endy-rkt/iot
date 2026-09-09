@@ -31,7 +31,7 @@ modprobe overlay
 # install latest stable k3s
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip 192.168.56.110 --flannel-iface eth1" sh -
 
-#wait for k3s to be ready
+#wait for k3s to be readyu
 until k3s kubectl get nodes 2>/dev/null | grep -q "Ready"; do
     echo "waiting k3s to be ready..."
     sleep 2

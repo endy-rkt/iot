@@ -23,7 +23,7 @@ manage_cluster(){
 
     if ! k3d cluster list | grep -i bonus-cluster &> /dev/null; then
         echo "creating bonus-cluster..."
-        k3d cluster create bonus-cluster -p "32000:32000@loadbalancer" -p "32001:32001@loadbalancer"
+        k3d cluster create bonus-cluster -p "32000:32000@server:0" -p "32001:32001@server:0" -p "30042:30042@server:0"
     fi
 }
 

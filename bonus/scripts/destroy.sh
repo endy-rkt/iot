@@ -8,7 +8,7 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-destroy_object(){
+destroy_resources(){
     local APP_MANIFEST="$SCRIPT_DIR/../conf/gitlab/"
     local APP_SERVICE="$APP_MANIFEST/service.yaml"
     local APP_DEPLOYMENT="$APP_MANIFEST/deployment.yaml"
@@ -24,4 +24,4 @@ destroy_object(){
     k3d cluster delete bonus-cluster
 }
 
-destroy_object
+destroy_resources
