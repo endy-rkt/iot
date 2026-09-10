@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: http://10.11.200.94:32000/gituser/gitops.git
+    repoURL: http://10.11.200.66:32000/gituser/gitops.git
     targetRevision: main
     path: dev
   destination:
