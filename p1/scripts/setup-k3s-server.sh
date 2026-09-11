@@ -25,25 +25,31 @@ rootless_kubectl(){
     . $VAGRANT_HOME/.profile
 }
 
-# load overlay module into kernel
-modprobe overlay
+main(){
+    local INTERFACE_USED="eht1"
+    local SERVER_IP="192.168.56.110"
 
-# install latest stable k3s
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip 192.168.56.110 --flannel-iface eth1" sh -
+    # load overlay module into kernel
+    modprobe overlay
 
-#wait for k3s to be readyu
-until k3s kubectl get nodes 2>/dev/null | grep -q "Ready"; do
-    echo "waiting k3s to be ready..."
-    sleep 2
-done
+    # install latest stable k3s
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip $SERVER_IP --flannel-iface $INTERFACE_USED" sh -
 
-# check the current node
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-k3s kubectl get nodes
+    until k3s kubectl get nodes 2>/dev/null | grep -iq "Ready"; do
+        echo "Waiting k3s to be ready..."
+        sleep 2
+    done
 
-# make kubectl rootless for vagrant user
-rootless_kubectl
+    # check the current node
+    export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+    k3s kubectl get nodes
 
-#get the token to join the cluster
-mkdir -p /vagrant && touch /vagrant/token
-cat /var/lib/rancher/k3s/server/node-token > /vagrant/token
+    # make kubectl rootless for vagrant user
+    rootless_kubectl
+
+    #get the token to join the cluster
+    mkdir -p /vagrant && touch /vagrant/token
+    cat /var/lib/rancher/k3s/server/node-token > /vagrant/token
+}
+
+main

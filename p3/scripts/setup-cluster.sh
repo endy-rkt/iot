@@ -6,7 +6,7 @@ echo "setting up the cluster..."
 
 setup_argocd(){
     local ARGOCD_PORT=8080
-    local app_manifest="$SCRIPT_DIR/../conf/application.yaml"
+    local APP_MANIFEST="$SCRIPT_DIR/../conf/application.yaml"
 
     #create app namespace
     if ! kubectl get ns | grep -i "dev" >/dev/null; then
@@ -33,7 +33,7 @@ setup_argocd(){
     echo "password: $PASSWD"
     
     #linking argocd to the repo
-    kubectl apply -f $app_manifest
+    kubectl apply -f $APP_MANIFEST
     
     #forword argocd and app port
     if [ -n "$SUDO_USER" ]; then

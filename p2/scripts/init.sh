@@ -1,30 +1,31 @@
 #!/bin/bash
 
-#this script is to run with root privilege
 if [[ $EUID -ne 0 ]]; then
-    echo "This script must be run with root priv"
+    echo "This script must be run with root priv!"
     exit 1
 fi
 
 install_vagrant(){
-
-    #skip installation if vagrant ok
-    if vagrant --version 2>/dev/null; then
-        echo "vagrant is already installed"
-        return 0
-    fi
-    
-    #script from vagrant
-    echo "installing vagrant..."
+    echo "Installing vagrant..."
     wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
     apt update && apt install -y vagrant
+}
+
+setup_vagrant(){
+
+    if vagrant --version 2>/dev/null; then
+        echo "Vagrant is already installed"
+        return 0
+    fi
+    
+    install_vagrant
 
     #check if vagrant is installed successfully
-    if vagrant --version > /dev/null; then
+    if vagrant --version &> /dev/null; then
         echo "Vagrant installed successfully!"
     else
-        echo "Error no vagrant installed!"
+        echo "Error when installing vagrant!"
         exit 1
     fi
 
@@ -32,29 +33,27 @@ install_vagrant(){
     vagrant plugin install vagrant-reload
 
     if [ -n "$SUDO_USER" ]; then
-        echo "Install vagrant reload for simple user..."
+        echo "Installing vagrant-reload plugin for non root user..."
         sudo -u "$SUDO_USER" vagrant plugin install vagrant-reload
     fi
 }
 
-#install vm provider virtualbox
 install_vbox(){
-    local vbox="virtualbox-7.2_7.2.14-174565~Debian~trixie_amd64.deb"
+    local VBOX="virtualbox-7.2_7.2.14-174565~Debian~trixie_amd64.deb"
 
     if vboxmanage --version 2>/dev/nulll; then
-        echo "vbox is already installed"
+        echo "Vbox is already installed!"
         return 0
     fi
 
     #install package dependancy
     apt install -y linux-headers-$(uname -r) libqt6core6t64 libqt6dbus6 libqt6gui6 libqt6help6 libqt6printsupport6 libqt6statemachine6 libqt6widgets6 libqt6xml6
-    wget https://download.virtualbox.org/virtualbox/7.2.14/$vbox && dpkg -i $vbox && rm $vbox
+    wget https://download.virtualbox.org/virtualbox/7.2.14/$VBOX && dpkg -i $VBOX && rm $VBOX
 
     if vboxmanage --version > /dev/null; then
         echo "virtualbox installed successfully"
     else
-        #note that there are many step to do to make it work
-        echo "Error when installing vbox"
+        echo "Error when installing vbox!"
         exit 1
     fi
 }
@@ -67,22 +66,11 @@ init_vagrant_file(){
         return 0
     fi
     
+    echo "Initiating vagrantfile..."
     cd $VAGRANT_VAGRANTFILE && vagrant init
 }
 
-setup_dns_p2(){
-    local P2_IP="192.168.56.110"
-    
-    if grep $P2_IP /etc/hosts > /dev/null; then
-        return 1
-    fi
-
-    echo "Setting up dns..."
-    echo "$P2_IP    app1.com" >> /etc/hosts
-    echo "$P2_IP    app2.com" >> /etc/hosts
-}
-
-black_list_kvm(){
+blacklist_kvm(){
     if ! grep "blacklist kvm" /etc/modprobe.d/blacklist.conf; then
         echo "Unload kvm temporally" && rmmod kvm_intel kvm
         echo "blacklist kvm_intel" | tee -a /etc/modprobe.d/blacklist.conf
@@ -90,18 +78,26 @@ black_list_kvm(){
     fi
 }
 
-black_list_kvm
+setup_p2_dns(){
+    local SERVER_IP="192.168.56.110"
+    
+    if grep $SERVER_IP /etc/hosts &> /dev/null; then
+        return 1
+    fi
 
-echo "Remove vagrant residu"
-rm -rf .vagrant
+    echo "Setting up dns..."
+    echo "$SERVER_IP    app1.com" >> /etc/hosts
+    echo "$SERVER_IP    app2.com" >> /etc/hosts
+}
 
-echo "installing vagrant..."
-install_vagrant
+main(){
+    blacklist_kvm
+    echo "Removing vagrant residents..."
+    rm -rf .vagrant
+    setup_vagrant
+    install_vbox
+    init_vagrant_file
+    setup_p2_dns
+}
 
-echo "installing vbox for vm provisionning..."
-install_vbox
-
-init_vagrant_file
-
-#setup p2 local dns
-setup_dns_p2
+main
