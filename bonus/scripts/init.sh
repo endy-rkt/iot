@@ -61,9 +61,9 @@ install_k3d(){
         #enable k3d for simple user
         if [ -n "$SUDO_USER" ]; then
             echo "enabling k3d for simple user..."
+            mkdir -p /home/$SUDO_USER/.kube
             k3d kubeconfig merge --all --output /home/$SUDO_USER/.kube/config
             chown -R $SUDO_USER:$SUDO_USER /home/$SUDO_USER/.kube
-            chown -R $SUDO_USER:$SUDO_USER /home/$SUDO_USER/.kube/config
         fi
     fi
 }

@@ -1,26 +1,27 @@
 #!/bin/bash
 
-#this script is to run with root privilege
 if [[ $EUID -ne 0 ]]; then
-    echo "This script must be run with root priv"
+    echo "This script must be run with root priv!"
     exit 1
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 install_docker(){
-    if docker ps &> /dev/null; then
-        echo "docker is already running..."
-        return 0
-    fi
-
-    echo "installing docker..."
+    echo "Installing docker..."
     apt update && apt install -y curl
     curl -fsSL https://get.docker.com -o get-docker.sh
     chmod +x get-docker.sh && ./get-docker.sh
     rm get-docker.sh
+}
 
-    #enable docker
+setup_docker(){
+    if docker ps &> /dev/null; then
+        echo "Docker is already installed!"
+        return 0
+    fi
+
+    install_docker
     systemctl start docker
     systemctl enable docker
     
@@ -34,42 +35,50 @@ install_docker(){
 }
 
 install_k3d(){
-    #install k3d
     if ! k3d version &>/dev/null; then
-        echo "installing k3d..."
+        echo "Installing k3d..."
         wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-
-        #enable k3d for simple user
-        if [ -n "$SUDO_USER" ]; then
-            echo "enabling k3d for simple user..."
-            k3d kubeconfig merge --all --output /home/$SUDO_USER/.kube/config
-            chown -R $SUDO_USER:$SUDO_USER /home/$SUDO_USER/.kube
-        fi
     fi
 }
 
-manage_cluster(){    
-    if k3d cluster list | grep -i bonus-cluster &> /dev/null; then
-        echo "deleting bonus-cluster..."
-        k3d cluster delete bonus-cluster
-    fi
-
-    if ! k3d cluster list | grep -i "p3-cluster" >/dev/null; then
-        echo "creating cluster p3-cluster..."
-        k3d cluster create "p3-cluster" -p "30042:30042@server:0"
+merge_k3d_config(){
+    if [ -n "$SUDO_USER" ]; then
+        echo "Merging k3d config with kubectl for rootless user..."
+        mkdir -p /home/$SUDO_USER/.kube
+        k3d kubeconfig merge --all --output /home/$SUDO_USER/.kube/config --overwrite
+        chown -R $SUDO_USER:$SUDO_USER /home/$SUDO_USER/.kube
+        chmod 600 /home/$SUDO_USER/.kube/config
     fi
 }
 
 install_kubectl(){
-    if ! kubectl version &>/dev/null; then
-        echo "installing kubectl..."
+    if ! kubectl version --client &>/dev/null; then
+        echo "Installing kubectl..."
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
         chmod +x kubectl && mv kubectl /usr/bin
     fi 
 }
 
-install_docker
-install_k3d
-install_kubectl
-manage_cluster
-chmod +x $SCRIPT_DIR/setup-cluster.sh && $SCRIPT_DIR/setup-cluster.sh
+manage_cluster(){    
+    if k3d cluster list | grep -i bonus-cluster &> /dev/null; then
+        echo "Deleting bonus-cluster..."
+        k3d cluster delete bonus-cluster
+    fi
+
+    if ! k3d cluster list | grep -i "p3-cluster" >/dev/null; then
+        echo "Creating cluster p3-cluster..."
+        k3d cluster create "p3-cluster" \
+            --api-port 127.0.0.1:6443 \
+            -p "30042:30042@server:0"
+    fi
+}
+
+main(){
+    setup_docker
+    install_k3d
+    install_kubectl
+    manage_cluster
+    merge_k3d_config
+}
+
+main
