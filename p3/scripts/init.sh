@@ -67,9 +67,7 @@ manage_cluster(){
 
     if ! k3d cluster list | grep -i "p3-cluster" >/dev/null; then
         echo "Creating cluster p3-cluster..."
-        k3d cluster create "p3-cluster" \
-            --api-port 127.0.0.1:6443 \
-            -p "30042:30042@server:0"
+        k3d cluster create "p3-cluster" -p "30042:30042@server:0"
     fi
 }
 

@@ -10,16 +10,14 @@ destroy_resources()
     local ARGOCD_PORT=8080
     
     echo "Destroying resources..."
+    if ! k3d cluster list | grep -i "p3-cluster" >/dev/null; then
+        echo "Cluster is already deleted!"
+        return 0
+    fi
+
     kubectl delete all --all -n dev
     kubectl delete apps --all -n argocd
     kubectl delete ns dev argocd
-
-    if lsof -i :$ARGOCD_PORT > /dev/null; then
-        echo "Cleaning argocd port $ARGOCD_PORT..."
-        PID=$(lsof -i :$ARGOCD_PORT | grep LISTEN | head -n 1| awk '{print $2}')
-        kill -9 $PID
-    fi
-
     k3d cluster delete p3-cluster
 }
 

@@ -2,22 +2,6 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-forward_argocd_port(){
-    local ARGOCD_PORT=8080
-
-    if [ -n "$SUDO_USER" ]; then
-        if lsof -i :$ARGOCD_PORT > /dev/null; then
-            echo "Cleaning argocd port $ARGOCD_PORT..."
-            PID=$(lsof -i :$ARGOCD_PORT | grep LISTEN | head -n 1| awk '{print $2}')
-            kill -9 $PID
-            sleep 5
-        fi
-
-        echo "Forwarding argocd default ports to $ARGOCD_PORT..."
-        sudo -u $SUDO_USER kubectl port-forward svc/argocd-server -n argocd $ARGOCD_PORT:443 &
-    fi
-}
-
 setup_argocd(){
     local ARGOCD_MANIFEST="$SCRIPT_DIR/../conf/install.yaml"
 
@@ -52,7 +36,6 @@ main(){
     fi
 
     setup_argocd
-    forward_argocd_port
     
     #link application to argocd
     kubectl apply -f $APP_MANIFEST
