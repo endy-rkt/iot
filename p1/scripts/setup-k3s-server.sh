@@ -26,7 +26,7 @@ rootless_kubectl(){
 }
 
 main(){
-    local INTERFACE_USED="eht1"
+    local INTERFACE_USED="eth1"
     local SERVER_IP="192.168.56.110"
 
     # load overlay module into kernel

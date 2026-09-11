@@ -71,7 +71,7 @@ init_vagrant_file(){
 }
 
 blacklist_kvm(){
-    if ! grep "blacklist kvm" /etc/modprobe.d/blacklist.conf; then
+    if ! grep "blacklist kvm" /etc/modprobe.d/blacklist.conf &> /dev/null; then
         echo "Unload kvm temporally" && rmmod kvm_intel kvm
         echo "blacklist kvm_intel" | tee -a /etc/modprobe.d/blacklist.conf
         echo "blacklist kvm" | tee -a /etc/modprobe.d/blacklist.conf
