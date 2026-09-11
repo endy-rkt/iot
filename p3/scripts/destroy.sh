@@ -6,9 +6,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 destroy_resources()
-{
-    local ARGOCD_PORT=8080
-    
+{    
     echo "Destroying resources..."
     if ! k3d cluster list | grep -i "p3-cluster" >/dev/null; then
         echo "Cluster is already deleted!"

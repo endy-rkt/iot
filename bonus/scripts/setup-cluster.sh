@@ -2,15 +2,13 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo "setting up the cluster..."
-
 setup_gitlab(){
     local APP_MANIFEST="$SCRIPT_DIR/../conf/gitlab/"
     local APP_VOLUME="$APP_MANIFEST/volume.yaml"
     local APP_SERVICE="$APP_MANIFEST/service.yaml"
     local APP_DEPLOYMENT="$APP_MANIFEST/deployment.yaml"
 
-    echo "setting up gitlab..."
+    echo "Setting up gitlab..."
     if ! kubectl get ns | grep -i "gitlab" >/dev/null; then
         kubectl create namespace gitlab
     fi
@@ -19,38 +17,27 @@ setup_gitlab(){
 }
 
 wait_gitlab(){
-    local HOST_IP=$(ip -f inet addr show dev enp0s3 | awk '/inet / {print $2}' | cut -d/ -f1)
-    local GITLAB_SERVER="http://$HOST_IP:32000"
+    local GITLAB_SERVER="http://localhost:32000"
 
     until curl $GITLAB_SERVER &> /dev/null; do
-        echo "waiting gitlab to be up..."
+        echo "Waiting gitlab to be up..."
         sleep 42 
     done
 
+    POD_NAME=$(kubectl get pods -n gitlab -o jsonpath='{.items[0].metadata.name}')
+    PASSWD=$(kubectl exec -ti $POD_NAME -n gitlab -- grep -i "password:" /etc/gitlab/initial_root_password)
+    echo "$PASSWD"
     kubectl get pods -n gitlab
     kubectl top pods -n gitlab
 }
 
 setup_argocd(){
-    local ARGOCD_PORT=8080
-    local APP_MANIFEST="$SCRIPT_DIR/../conf/app/application.yaml"
-    local SECRET_MANIFEST="$SCRIPT_DIR/../conf/argocd/secret.yaml"
-    local ARGOCD_MANIFEST="$SCRIPT_DIR/../conf/argocd/secret.yaml"
+    local ARGOCD_MANIFEST="$SCRIPT_DIR/../conf/argocd/install.yaml"
 
-    echo "setting up argocd..."
-    if ! kubectl get ns | grep -i "dev" >/dev/null; then
-        kubectl create namespace dev
-    fi
-
-    if kubectl get ns | grep -i "argocd" >> /dev/null; then
-        echo "argocd already setted"
-        return 0
-    fi
-
-    echo "setting up argocd..."
+    echo "Setting up argocd..."
     kubectl create namespace argocd
     if ! kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml; then
-        echo "echo retry with local manifest..."
+        echo "Setting up argocd using local install manifest..."
         kubectl apply -n argocd --server-side --force-conflicts -f "$ARGOCD_MANIFEST"
     fi
 
@@ -62,25 +49,14 @@ setup_argocd(){
     
     #take the password
     local PASSWD=$(kubectl -n argocd get secrets argocd-initial-admin-secret -o yaml  | grep "==" | awk '{print $2}'| base64 -d)
-    echo "password: $PASSWD"
-    
-    #linking argocd to the repo
-    # kubectl apply -f "$SECRET_MANIFEST","$APP_MANIFEST"
-    
-    #forword argocd and app port
-    if [ -n "$SUDO_USER" ]; then
-        if lsof -i :$ARGOCD_PORT > /dev/null; then
-            echo "cleaning argocd port $ARGOCD_PORT..."
-            PID=$(lsof -i :$ARGOCD_PORT | grep LISTEN | head -n 1| awk '{print $2}')
-            kill -9 $PID
-            sleep 3
-        fi
-
-        echo "forwarding argocd default ports to $ARGOCD_PORT..."
-        sudo -u $SUDO_USER kubectl port-forward svc/argocd-server -n argocd $ARGOCD_PORT:443 &
-    fi
+    echo "password: $PASSWD"    
 }
 
-setup_gitlab
-wait_gitlab
-setup_argocd
+
+main(){
+    setup_gitlab
+    wait_gitlab
+    setup_argocd
+}
+
+main
