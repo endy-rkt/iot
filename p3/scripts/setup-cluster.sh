@@ -38,6 +38,7 @@ main(){
     setup_argocd
     
     #link application to argocd
+    echo "Launching app..."
     kubectl apply -f $APP_MANIFEST
 }
 

@@ -37,26 +37,26 @@ spec:
             sidekiq['max_rss_mb_allowance'] = 1024
             sidekiq['memory_killer_max_rss'] = 700_000
 
-            # --- Redis : illimité par défaut ---
+            # --- Redis ---
             redis['maxmemory'] = "256mb"
             redis['maxmemory_policy'] = "allkeys-lru"
 
-            # --- Gitaly : pics lors d'opérations git (clone/fetch pour ArgoCD) ---
+            # --- Gitaly ---
             gitaly['env'] = {
               'GITALY_COMMAND_SPAWN_MAX_PARALLEL' => '2'
             }
 
-            # --- Nginx : évite auto-scaling des workers sur le nb de CPU ---
+            # --- Nginx ---
             nginx['worker_processes'] = 1
 
-            # --- Composants désactivés ---
+            # --- stop compounds ---
             prometheus_monitoring['enable'] = false
             registry['enable'] = false
             gitlab_pages['enable'] = false
             mattermost['enable'] = false
             gitlab_kas['enable'] = false
 
-            # --- Mémoire native ---
+            # --- Memory ---
             gitlab_rails['env'] = { 'MALLOC_CONF' => 'dirty_decay_ms:1000,muzzy_decay_ms:1000' }
         volumeMounts:
         - name: data-volume
